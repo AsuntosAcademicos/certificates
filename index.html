@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificados</title>
-    
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Google Fonts para la tipografía -->
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Colores personalizados UPEU Juliaca */
         :root {
-            --azul-upeu: #0066CC;  /* Azul UPEU Juliaca */
-            --azul-oscuro-upeu: #005BB5;  /* Azul oscuro */
+            --azul-upeu: #0066CC;
+            --azul-oscuro-upeu: #005BB5;
         }
 
         body {
@@ -26,71 +26,104 @@
         .btn-upeu {
             background-color: var(--azul-upeu);
             color: white;
+            transition: background-color 0.3s;
         }
 
         .btn-upeu:hover {
             background-color: var(--azul-oscuro-upeu);
         }
 
-        .modal-content {
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        /* Animación modal */
+        .modal {
+            transition: opacity 0.3s ease;
         }
 
-        footer {
-            margin-top: 50px;
-            font-size: 1rem;
-            color: #6c757d;
-        }
-
-        #pdf-viewer-container {
-            margin-top: 20px;
-            text-align: center;
+        .modal.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
     </style>
 </head>
-<body>
-    <div class="container mx-auto p-6">
-        <div class="text-center mb-6">
-            <h1 class="display-4 text-primary">CERTIFICADO</h1>
-            <p class="lead text-secondary">Ingrese DNI o Código para Validar tus Certificados</p>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- Contenedor principal -->
+    <div class="container mx-auto px-6 py-10 flex-grow">
+        <div class="text-center mb-10">
+            <h1 class="text-6xl font-extrabold text-[var(--azul-upeu)]">CERTIFICADO</h1>
+            <p class="text-gray-600 mt-2">Ingrese DNI o Código para validar tus certificados</p>
         </div>
-        
-        <!-- Formulario de búsqueda con Bootstrap -->
-        <form id="search-form" class="mb-6 d-flex justify-content-center align-items-center space-x-2">
-            <input type="text" id="dni-input" class="form-control w-50" placeholder="DNI o Código" required>
-            <button type="submit" class="btn btn-upeu">
+
+        <!-- Formulario -->
+        <form id="search-form" class="flex justify-center gap-3 mb-10">
+            <input type="text" id="dni-input" placeholder="DNI o Código" required
+                class="border border-gray-300 rounded-md px-4 py-2 w-1/2 focus:outline-none focus:ring-2 focus:ring-[var(--azul-upeu)]">
+            <button type="submit"
+                class="btn-upeu flex items-center justify-center gap-2 px-6 py-2 rounded-md font-medium">
+                <!-- Ícono de búsqueda -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
+                </svg>
                 Buscar
             </button>
+
         </form>
 
-        <!-- Modal para mostrar el resultado -->
-        <div id="result-modal" class="modal fade" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 id="student-name" class="modal-title text-primary"></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <button id="view-cert-button" class="btn btn-success w-100">
-                            Ver Certificado
-                        </button>
-                    </div>
+        <!-- Modal personalizado (sin Bootstrap) -->
+        <div id="result-modal"
+            class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-96">
+                <div class="flex justify-between items-center border-b px-4 py-3">
+                    <h5 id="student-name" class="text-lg font-semibold text-[var(--azul-upeu)]">Nombre del estudiante
+                    </h5>
+                    <button id="close-modal"
+                        class="text-gray-500 hover:text-gray-700 text-xl font-bold">&times;</button>
+                </div>
+                <div class="p-4">
+                    <button id="view-cert-button"
+                        class="bg-green-600 hover:bg-green-700 text-white w-full py-2 rounded-md font-medium">
+                        Ver Certificado
+                    </button>
                 </div>
             </div>
         </div>
-        
     </div>
 
-    <footer class="text-center mt-5">
+    <!-- Footer -->
+    <footer class="text-center py-6 text-gray-500 text-sm">
         <p>Desarrollado por <strong>Asuntos Académicos UPeU Campus Juliaca</strong></p>
     </footer>
 
-    <!-- Scripts de Bootstrap y jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script del modal y lógica -->
+    <script>
+        const form = document.getElementById('search-form');
+        const modal = document.getElementById('result-modal');
+        const closeModal = document.getElementById('close-modal');
 
-    <script src="script.js"></script>
+        // Mostrar modal al enviar el formulario (demo)
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('student-name').textContent = "Estudiante Ejemplo";
+        });
+
+        // Cerrar modal
+        closeModal.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+
+        // Cerrar modal al hacer clic fuera del cuadro
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        });
+    </script>
 </body>
+
 </html>
